@@ -13,8 +13,7 @@ A simple Windows GUI application with two tabs:
     converted to the Pathfinder RPG in-world calendar used on Golarion.
 
   Tab 2 — "Golarion Calendar"
-    Enter a date directly in Golarion terms (Golarion month, day 1-30, and
-    year in IA) and the app outputs the correctly formatted Golarion date
+    Enter a date directly in Golarion terms and the app outputs the correctly formatted Golarion date
     including the day-of-week name.
 
 Both tabs include a Delta field for offsetting the selected date by any number
@@ -53,9 +52,10 @@ GOLARION CALENDAR (Tab 2)
   Example: Month = Rova, Day = 5, Year = 933
     -> Moonday, 5th of Rova, in the year 933 IA
 
-  Note: The Pathfinder calendar uses 12 months of exactly 30 days each.
-  Day-of-week is calculated by mapping the Golarion date back to its
-  equivalent Gregorian date for weekday arithmetic.
+  Note: Golarion months use the same day-lengths as their Gregorian
+  equivalents (Abadius/January = 31 days, Calistril/February = 28 or 29
+  on leap years, etc.) so that dates map 1:1 and weekdays stay consistent
+  between Tab 1 and Tab 2.
 
 DELTA FEATURE (both tabs)
 --------------------------
