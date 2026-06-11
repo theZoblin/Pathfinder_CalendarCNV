@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkcalendar import Calendar
 import datetime
+import calendar
 
 # ---------------------------------------------------------------------------
 # Conversion data
@@ -17,28 +18,25 @@ DAY_NAMES = {
     6: "Sunday",    # Sunday
 }
 
-# Ordered list used for the Golarion tab dropdowns
+# Ordered list — index+1 == Gregorian month number (1:1 mapping)
 MONTH_LIST = [
-    "Abadius",   # 1
-    "Calistril", # 2
-    "Pharast",   # 3
-    "Gozran",    # 4
-    "Desnus",    # 5
-    "Sarenith",  # 6
-    "Erastus",   # 7
-    "Arodus",    # 8
-    "Rova",      # 9
-    "Lamashan",  # 10
-    "Neth",      # 11
-    "Kuthona",   # 12
+    "Abadius",   # 1  Jan  31 days
+    "Calistril", # 2  Feb  28/29 days
+    "Pharast",   # 3  Mar  31 days
+    "Gozran",    # 4  Apr  30 days
+    "Desnus",    # 5  May  31 days
+    "Sarenith",  # 6  Jun  30 days
+    "Erastus",   # 7  Jul  31 days
+    "Arodus",    # 8  Aug  31 days
+    "Rova",      # 9  Sep  30 days
+    "Lamashan",  # 10 Oct  31 days
+    "Neth",      # 11 Nov  30 days
+    "Kuthona",   # 12 Dec  31 days
 ]
 
 MONTH_NAMES = {i + 1: name for i, name in enumerate(MONTH_LIST)}
 
 YEAR_OFFSET = 1032
-
-# Golarion months all have 30 days (standard Pathfinder calendar)
-DAYS_PER_MONTH = 30
 
 
 # ---------------------------------------------------------------------------
@@ -52,6 +50,16 @@ def ordinal_suffix(day: int) -> str:
     return {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")
 
 
+def days_in_golarion_month(pf_year: int, pf_month: int) -> int:
+    """
+    Return the number of days in a Golarion month.
+    Uses the equivalent Gregorian year (pf_year + YEAR_OFFSET) for leap-year
+    calculation so that Calistril (Feb) gets 29 days on leap years.
+    """
+    greg_year = pf_year + YEAR_OFFSET
+    return calendar.monthrange(greg_year, pf_month)[1]
+
+
 def format_pathfinder_date(date: datetime.date) -> str:
     """Convert a Python date object to a Pathfinder-formatted date string."""
     day_name = DAY_NAMES[date.weekday()]
@@ -62,25 +70,11 @@ def format_pathfinder_date(date: datetime.date) -> str:
     return f"{day_name}, {day}{suffix} of {month_name}, in the year {pf_year} IA"
 
 
-def golarion_day_name(pf_year: int, pf_month: int, pf_day: int) -> str:
-    """
-    Compute the Golarion weekday for a native Golarion date.
-
-    Strategy: convert the Golarion date to its equivalent Gregorian date
-    (by adding YEAR_OFFSET back), then use Python's weekday().
-
-    Golarion calendar: 12 months × 30 days = 360 days/year.
-    We map month/day directly onto the Gregorian calendar month/day so that
-    the weekday arithmetic stays consistent with Tab 1.
-    """
-    greg_year = pf_year + YEAR_OFFSET
-    greg_date = datetime.date(greg_year, pf_month, pf_day)
-    return DAY_NAMES[greg_date.weekday()]
-
-
 def format_golarion_date(pf_year: int, pf_month: int, pf_day: int) -> str:
     """Build the output string from native Golarion inputs."""
-    day_name = golarion_day_name(pf_year, pf_month, pf_day)
+    greg_year = pf_year + YEAR_OFFSET
+    greg_date = datetime.date(greg_year, pf_month, pf_day)
+    day_name = DAY_NAMES[greg_date.weekday()]
     month_name = MONTH_NAMES[pf_month]
     suffix = ordinal_suffix(pf_day)
     return f"{day_name}, {pf_day}{suffix} of {month_name}, in the year {pf_year} IA"
@@ -91,7 +85,6 @@ def golarion_delta(pf_year: int, pf_month: int, pf_day: int, delta: int) -> str:
     greg_year = pf_year + YEAR_OFFSET
     base = datetime.date(greg_year, pf_month, pf_day)
     adjusted = base + datetime.timedelta(days=delta)
-    # Convert back to Golarion
     new_pf_year = adjusted.year - YEAR_OFFSET
     return format_golarion_date(new_pf_year, adjusted.month, adjusted.day)
 
@@ -142,7 +135,6 @@ class PathfinderCalendarApp(tk.Tk):
         nb = ttk.Notebook(self)
         nb.pack(padx=12, pady=(10, 0), fill="both", expand=True)
 
-        # Tab frames
         tab1 = tk.Frame(nb, bg=BG)
         tab2 = tk.Frame(nb, bg=BG)
         nb.add(tab1, text="  Gregorian → Golarion  ")
@@ -168,7 +160,6 @@ class PathfinderCalendarApp(tk.Tk):
     # ── Tab 1: Gregorian → Golarion ─────────────────────────────────────────
 
     def _build_tab1(self, parent):
-        # Calendar widget
         cal_frame = tk.LabelFrame(
             parent, text="Select a Date", font=("Segoe UI", 10),
             bg=BG, fg="#2a2a2a", padx=8, pady=8,
@@ -196,7 +187,6 @@ class PathfinderCalendarApp(tk.Tk):
         self.cal.pack()
         self.cal.bind("<<CalendarSelected>>", self._on_date_selected)
 
-        # Result
         result_frame = tk.LabelFrame(
             parent, text="Pathfinder Date", font=("Segoe UI", 10),
             bg=BG, fg="#2a2a2a", padx=8, pady=8,
@@ -210,13 +200,11 @@ class PathfinderCalendarApp(tk.Tk):
             wraplength=420, justify="center",
         ).pack()
 
-        # Delta
         self._build_delta_section(parent, mode="greg")
 
     # ── Tab 2: Native Golarion calendar ─────────────────────────────────────
 
     def _build_tab2(self, parent):
-        # ── Selectors row ────────────────────────────────────────────────────
         sel_frame = tk.LabelFrame(
             parent, text="Select a Golarion Date", font=("Segoe UI", 10),
             bg=BG, fg="#2a2a2a", padx=12, pady=10,
@@ -227,26 +215,26 @@ class PathfinderCalendarApp(tk.Tk):
         tk.Label(sel_frame, text="Month:", font=("Segoe UI", 10),
                  bg=BG, fg="#2a2a2a").grid(row=0, column=0, sticky="e", padx=(0, 4))
         self.gol_month_var = tk.StringVar(value=MONTH_LIST[0])
-        month_cb = ttk.Combobox(
+        self.month_cb = ttk.Combobox(
             sel_frame, textvariable=self.gol_month_var,
             values=MONTH_LIST, state="readonly", width=12,
             font=("Segoe UI", 10),
         )
-        month_cb.grid(row=0, column=1, padx=(0, 16), sticky="w")
-        month_cb.bind("<<ComboboxSelected>>", self._on_golarion_changed)
+        self.month_cb.grid(row=0, column=1, padx=(0, 16), sticky="w")
+        self.month_cb.bind("<<ComboboxSelected>>", self._on_month_or_year_changed)
 
         # Day
         tk.Label(sel_frame, text="Day:", font=("Segoe UI", 10),
                  bg=BG, fg="#2a2a2a").grid(row=0, column=2, sticky="e", padx=(0, 4))
         self.gol_day_var = tk.StringVar(value="1")
-        day_cb = ttk.Combobox(
+        self.day_cb = ttk.Combobox(
             sel_frame, textvariable=self.gol_day_var,
-            values=[str(d) for d in range(1, DAYS_PER_MONTH + 1)],
+            values=[str(d) for d in range(1, 32)],
             state="readonly", width=5,
             font=("Segoe UI", 10),
         )
-        day_cb.grid(row=0, column=3, padx=(0, 16), sticky="w")
-        day_cb.bind("<<ComboboxSelected>>", self._on_golarion_changed)
+        self.day_cb.grid(row=0, column=3, padx=(0, 16), sticky="w")
+        self.day_cb.bind("<<ComboboxSelected>>", self._on_golarion_changed)
 
         # Year
         tk.Label(sel_frame, text="Year (IA):", font=("Segoe UI", 10),
@@ -257,9 +245,9 @@ class PathfinderCalendarApp(tk.Tk):
             font=("Segoe UI", 10), width=7, justify="center",
         )
         year_entry.grid(row=0, column=5, sticky="w")
-        self.gol_year_var.trace_add("write", self._on_golarion_changed)
+        self.gol_year_var.trace_add("write", self._on_month_or_year_changed)
 
-        # ── Result ───────────────────────────────────────────────────────────
+        # Result
         result2_frame = tk.LabelFrame(
             parent, text="Golarion Date", font=("Segoe UI", 10),
             bg=BG, fg="#2a2a2a", padx=8, pady=8,
@@ -273,7 +261,6 @@ class PathfinderCalendarApp(tk.Tk):
             wraplength=420, justify="center",
         ).pack()
 
-        # Delta
         self._build_delta_section(parent, mode="gol")
 
     # ── Shared delta builder ─────────────────────────────────────────────────
@@ -349,9 +336,45 @@ class PathfinderCalendarApp(tk.Tk):
     # Event handlers — Tab 2
     # -----------------------------------------------------------------------
 
+    def _on_month_or_year_changed(self, *_args):
+        """
+        When month or year changes, recalculate the max days for that month
+        (respecting leap years for Calistril/Feb), clamp the selected day if
+        needed, then recalculate the date output.
+        """
+        year_raw = self.gol_year_var.get().strip()
+        try:
+            pf_year = int(year_raw)
+            if pf_year <= 0:
+                raise ValueError
+        except ValueError:
+            # Can't determine days yet — just refresh the output
+            self._on_golarion_changed()
+            return
+
+        try:
+            pf_month = MONTH_LIST.index(self.gol_month_var.get()) + 1
+        except ValueError:
+            self._on_golarion_changed()
+            return
+
+        max_days = days_in_golarion_month(pf_year, pf_month)
+        new_values = [str(d) for d in range(1, max_days + 1)]
+        self.day_cb["values"] = new_values
+
+        # Clamp current day selection if it exceeds the new month's length
+        try:
+            current_day = int(self.gol_day_var.get())
+        except ValueError:
+            current_day = 1
+        if current_day > max_days:
+            self.gol_day_var.set(str(max_days))
+
+        self._on_golarion_changed()
+
     def _on_golarion_changed(self, *_args):
-        """Recalculate whenever month, day, or year changes on Tab 2."""
-        # Clear delta result whenever the base date changes
+        """Recalculate the Golarion date output."""
+        # Clear delta whenever base date changes
         if hasattr(self, "gol_delta_var"):
             self.gol_delta_var.set("")
         if hasattr(self, "gol_delta_result_var"):
@@ -375,6 +398,12 @@ class PathfinderCalendarApp(tk.Tk):
             pf_day = int(self.gol_day_var.get())
         except (ValueError, IndexError):
             self.gol_result_var.set("Error")
+            return
+
+        # Validate day against actual month length
+        max_days = days_in_golarion_month(pf_year, pf_month)
+        if not (1 <= pf_day <= max_days):
+            self.gol_result_var.set("Error — invalid day for selected month/year")
             return
 
         try:
