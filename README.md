@@ -1,14 +1,24 @@
 ================================================================================
   PATHFINDER CALENDAR CONVERTER
   Converts Gregorian dates to the Pathfinder RPG (Golarion) calendar system
+  Also supports native Golarion date entry
 ================================================================================
 
 DESCRIPTION
 -----------
-A simple Windows GUI application that takes a standard calendar date and
-converts it to the Pathfinder RPG in-world calendar used on the planet
-Golarion.  It also supports a "Delta" offset so you can quickly calculate
-dates a number of days before or after the selected date.
+A simple Windows GUI application with two tabs:
+
+  Tab 1 — "Gregorian → Golarion"
+    Pick a standard Gregorian date from a calendar widget and it is instantly
+    converted to the Pathfinder RPG in-world calendar used on Golarion.
+
+  Tab 2 — "Golarion Calendar"
+    Enter a date directly in Golarion terms (Golarion month, day 1-30, and
+    year in IA) and the app outputs the correctly formatted Golarion date
+    including the day-of-week name.
+
+Both tabs include a Delta field for offsetting the selected date by any number
+of days.
 
 CONVERSIONS APPLIED
 -------------------
@@ -35,11 +45,23 @@ CONVERSIONS APPLIED
   Output format example:
     Wealday, 10th of Sarenith, in the year 994 IA
 
-DELTA FEATURE
--------------
+GOLARION CALENDAR (Tab 2)
+--------------------------
+  Select a Golarion month from the dropdown, a day (1-30), and type a year
+  in IA.  The converted date string appears immediately.
+
+  Example: Month = Rova, Day = 5, Year = 933
+    -> Moonday, 5th of Rova, in the year 933 IA
+
+  Note: The Pathfinder calendar uses 12 months of exactly 30 days each.
+  Day-of-week is calculated by mapping the Golarion date back to its
+  equivalent Gregorian date for weekday arithmetic.
+
+DELTA FEATURE (both tabs)
+--------------------------
   Enter a positive or negative whole number in the "Delta" box to offset the
   selected date by that many days.  The converted result updates live as you
-  type.  Selecting a new date clears the Delta field automatically.
+  type.  Selecting or changing a date clears the Delta field automatically.
   Any non-integer input displays "Error".
 
 ================================================================================
@@ -88,10 +110,10 @@ DEPENDENCIES
   AI PROMPT USED TO GENERATE THIS PROJECT
 ================================================================================
 
-The following prompt was submitted to Claude (Anthropic) to generate the
+The following prompts were submitted to Claude (Anthropic) to generate the
 source code and build instructions for this project:
 
----
+--- INITIAL PROMPT ---
 
 "Can you create me a simple software program that has a calendar drop down and
 when a date is selected, it converts the days from Mon - Sunday to Moonday,
@@ -116,6 +138,13 @@ This should be compiled into an .exe file and open a simple GUI with a grey
 background of appropriate size to contain the data.  There should be a close
 button at the bottom that exits."
 
+--- FOLLOW-UP PROMPT (Tab 2 addition) ---
+
+"Can you update this script to add an additional tab which is the calendar in
+the format of the Golarian calendar only?  So the user can specifically select
+the 5th of Rova in the year 933 in a calendar and it spits out the same data,
+Moonday, the 5th of Rova, in the Year 933 IA?"
+
 ---
 
 ================================================================================
@@ -128,7 +157,7 @@ utility and is not affiliated with or endorsed by Paizo Inc.
 
 ================================================================================
   SPECIAL THANKS
-===================================================================================
+================================================================================
 
 This tool was forged in the fires of necessity to track the twisting timelines of Golarion. Special thanks to the crew who inspired its creation:
 
