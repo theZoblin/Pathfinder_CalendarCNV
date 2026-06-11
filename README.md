@@ -127,3 +127,16 @@ Pathfinder is a trademark of Paizo Inc.  This tool is an unofficial fan
 utility and is not affiliated with or endorsed by Paizo Inc.
 
 ================================================================================
+  SPECIAL THANKS
+===================================================================================
+
+This tool was forged in the fires of necessity to track the twisting timelines of Golarion. Special thanks to the crew who inspired its creation:
+
+* Our Game Master (Ian): For weaving an incredible world, handling my calendar-pedantry like a absolute champ, and terrifying us with the anomalies of Tosen and the surrounding areas. 
+* The Hollow Oath members of The Grey Ledger:
+  ** Akkyt: For ensuring a fair fight, even for enemy wizards and helping Kinyscus to discover the temoral anomalies.
+  ** Soranus: For helping Kinyscus conive new and fun ways to remove combatants and keeping the party grounded.
+  ** Neponthes: For keeping a loaded D20 in her back pocket and being a terrifying whirlwind.
+
+May our dates align and our timelines remain unbroken. 
+
